@@ -1,0 +1,15 @@
+<packageDefine name="websockets" version="1" type="cpp" includedir="." platform="all">
+	<parameter/>
+	<depend>
+	</depend>
+	<cppfile>
+	</cppfile>
+	<headfile>
+		<file name="libwebsockets.h">
+		<file name="lws_config.h">
+	</headfile>
+	<libfile>
+		<file name="websockets"/>
+	</libfile>
+	<command/>
+</packageDefine>

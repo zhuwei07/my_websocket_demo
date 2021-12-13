@@ -1,0 +1,13 @@
+<packageDefine name="wsserver" version="1" type="cpp" includedir="." platform="all">
+	<parameter/>
+	<depend>
+	</depend>
+	<cppfile>
+		<file name="WsServer.cpp"/>
+	</cppfile>
+	<headfile>
+	</headfile>
+	<libfile>
+	</libfile>
+	<command/>
+</packageDefine>

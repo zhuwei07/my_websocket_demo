@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="gb2312"?>
+<packageDefine name="openssl" version="1" type="cpp" includedir="." platform="all">
+	<parameter/>
+	<depend/>
+	<cppfile/>
+	<headfile/>
+	<libfile>
+		<file name="ssleay32"/>
+		<file name="eay32"/>
+	</libfile>
+	<command/>
+</packageDefine>

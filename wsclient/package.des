@@ -1,0 +1,13 @@
+<packageDefine name="wsclient" version="1" type="cpp" includedir="." platform="all">
+	<parameter/>
+	<depend>
+	</depend>
+	<cppfile>
+		<file name="WsClient.cpp"/>
+	</cppfile>
+	<headfile>
+	</headfile>
+	<libfile>
+	</libfile>
+	<command/>
+</packageDefine>
