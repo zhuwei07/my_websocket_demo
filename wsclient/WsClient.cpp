@@ -38,15 +38,15 @@ int callback( struct lws *wsi, enum lws_callback_reasons reason, void *user, voi
             lwsl_notice( "Rx: %s\n", (char *) in );
             break;
         case LWS_CALLBACK_CLIENT_WRITEABLE:     // 当此客户端可以发送数据时的回调
-            if ( data->msg_count < 3 ) {
-                // 前面LWS_PRE个字节必须留给LWS
-                memset( data->buf, 0, sizeof( data->buf ));
-                char *msg = (char *) &data->buf[ LWS_PRE ];
-                data->len = sprintf( msg, "你好 %d", ++data->msg_count );
-                lwsl_notice( "Tx: %s\n", msg );
-                // 通过WebSocket发送文本消息
-                lws_write( wsi, &data->buf[ LWS_PRE ], data->len, LWS_WRITE_TEXT );
-            }
+            //if ( data->msg_count < 3 ) {
+            //    // 前面LWS_PRE个字节必须留给LWS
+            //    memset( data->buf, 0, sizeof( data->buf ));
+            //    char *msg = (char *) &data->buf[ LWS_PRE ];
+            //    data->len = sprintf( msg, "你好 %d", ++data->msg_count );
+            //    lwsl_notice( "Tx: %s\n", msg );
+            //    // 通过WebSocket发送文本消息
+            //    lws_write( wsi, &data->buf[ LWS_PRE ], data->len, LWS_WRITE_TEXT );
+            //}
             break;
     }
     return 0;
@@ -78,13 +78,7 @@ int main() {
     ctx_info.protocols = protocols;
     ctx_info.gid = -1;
     ctx_info.uid = -1;
-    
-    //ssl支持（指定CA证书、客户端证书及私钥路径，打开ssl支持）
-    ctx_info.ssl_ca_filepath = "../ca/ca-cert.pem";
-    ctx_info.ssl_cert_filepath = "./client-cert.pem";
-    ctx_info.ssl_private_key_filepath = "./client-key.pem";
-    ctx_info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
- 
+
     // 创建一个WebSocket处理器
     struct lws_context *context = lws_create_context( &ctx_info );
  
@@ -98,7 +92,7 @@ int main() {
     conn_info.context = context;
     conn_info.address = address;
     conn_info.port = port;
-    conn_info.ssl_connection = 1;
+    conn_info.ssl_connection = 0;
     conn_info.path = "./";
     conn_info.host = addr_port;
     conn_info.origin = addr_port;
@@ -114,7 +108,7 @@ int main() {
          * 下面的调用的意义是：当连接可以接受新数据时，触发一次WRITEABLE事件回调
          * 当连接正在后台发送数据时，它不能接受新的数据写入请求，所有WRITEABLE事件回调不会执行
          */
-        lws_callback_on_writable( wsi );
+        //lws_callback_on_writable( wsi );
     }
     // 销毁上下文对象
     lws_context_destroy( context );

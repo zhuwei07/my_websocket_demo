@@ -21,33 +21,49 @@ struct session_data {
     bool fin;
 };
 
+static int websocket_write_back(struct lws *wsi_in, char *str, int str_size_in)   //此函数从别处借来，再此非常感谢
+{
+    if (str == NULL || wsi_in == NULL)
+        return -1;
+
+    int n;
+    int len;
+    unsigned char *out = NULL;
+
+    if (str_size_in < 1)
+        len = strlen(str);
+    else
+        len = str_size_in;
+
+    out = (unsigned char *)malloc(sizeof(unsigned char) * (LWS_SEND_BUFFER_PRE_PADDING + len + LWS_SEND_BUFFER_POST_PADDING));
+    //* setup the buffer*/  
+    memcpy(out + LWS_SEND_BUFFER_PRE_PADDING, str, len);  //要发送的数据从此处拷贝
+    //* write out*/  
+    n = lws_write(wsi_in, out + LWS_SEND_BUFFER_PRE_PADDING, len, LWS_WRITE_TEXT);  //lws的发送函数
+    lwsl_notice("Server Send message.\n");
+
+  //  printf("[websocket_write_back] %s\n", str);  
+    //* free the buffer*/  
+    free(out);
+
+    return n;
+}
+
 static int protocol_my_callback( struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len ) {
-    struct session_data *data = (struct session_data *) user;
     switch ( reason ) {
         case LWS_CALLBACK_ESTABLISHED:       // 当服务器和客户端完成握手后
-            printf("Client connect!\n");
+            lwsl_notice("Client connect!\n");
             break;
         case LWS_CALLBACK_RECEIVE:           // 当接收到客户端发来的帧以后
-            // 判断是否最后一帧
-            data->fin = lws_is_final_fragment( wsi );
-            // 判断是否二进制消息
-            data->bin = lws_frame_is_binary( wsi );
-            // 对服务器的接收端进行流量控制，如果来不及处理，可以控制之
-            // 下面的调用禁止在此连接上接收数据
-            lws_rx_flow_control( wsi, 0 );
- 
-            // 业务处理部分，为了实现Echo服务器，把客户端数据保存起来
-            memcpy( &data->buf[ LWS_PRE ], in, len );
-            data->len = len;
-            printf("recvied message:%s\n",in);
- 
-            // 需要给客户端应答时，触发一次写回调
-            lws_callback_on_writable( wsi );
             break;
         case LWS_CALLBACK_SERVER_WRITEABLE:   // 当此连接可写时
-            lws_write( wsi, &data->buf[ LWS_PRE ], data->len, LWS_WRITE_TEXT );
-            // 下面的调用允许在此连接上接收数据
-            lws_rx_flow_control( wsi, 1 );
+            //lws_write( wsi, &data->buf[ LWS_PRE ], data->len, LWS_WRITE_TEXT );
+            //// 下面的调用允许在此连接上接收数据
+            //lws_rx_flow_control( wsi, 1 );
+            websocket_write_back(wsi, "hello client", 0);
+            Sleep(1000);
+            break;
+        default:
             break;
     }
     // 回调函数最终要返回0，否则无法创建服务器
@@ -80,16 +96,15 @@ int main(int argc,char **argv)
     ctx_info.protocols = protocols;
     ctx_info.gid = -1;
     ctx_info.uid = -1;
-    ctx_info.options = LWS_SERVER_OPTION_VALIDATE_UTF8;
 
-    ctx_info.ssl_ca_filepath = "../ca/ca-cert.pem";
-    ctx_info.ssl_cert_filepath = "./server-cert.pem";
-    ctx_info.ssl_private_key_filepath = "./server-key.pem";
-    ctx_info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
-    //ctx_info.options |= LWS_SERVER_OPTION_REQUIRE_VALID_OPENSSL_CLIENT_CERT;
+    ctx_info.ssl_ca_filepath = NULL;
+    ctx_info.ssl_cert_filepath = NULL;
+    ctx_info.ssl_private_key_filepath = NULL;
+    ctx_info.options = 0;
     
     struct lws_context *context = lws_create_context(&ctx_info);
     while ( !exit_sig ) {
+        lws_callback_on_writable_all_protocol(context, &protocols[0]); //激活写数据的case
         lws_service(context, 1000);
     }
     lws_context_destroy(context);
